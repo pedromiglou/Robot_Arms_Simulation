@@ -4,28 +4,28 @@ addpath ./Robot_Arms_Simulation/
 close;
 clear;
 
-axis equal; axis([-2000 4000 -2000 2000 0 4000]); hold on; view(3);
+axis equal; axis([-3000 3000 -2000 2000 0 4000]); hold on; view(3);
 grid on;
 
 xlabel("X"); ylabel("Y"); zlabel("Z");
 
 [HTA, HTB, STF, LTF, DTF, DTT, LTT, WTS, HTC, LBL, WBL, HBL, H, LD, LC, LB, LA, LX, LZ] = ReadParameters("tp2.txt");
 
-xmin=0; xmax=LTF; ymin=0; ymax=WTS; zmin=0; zmax=HTB;
+xmin=-DTF-LTF; xmax=-DTF; ymin=-WTS-STF/2; ymax=-STF/2; zmin=0; zmax=HTB;
 plot3([xmin,xmin],[ymin,ymin],[zmin,zmax],'-r')
 plot3([xmax,xmax],[ymin,ymin],[zmin,zmax],'-r')
 plot3([xmax,xmax],[ymax,ymax],[zmin,zmax],'-r')
 plot3([xmin,xmin],[ymax,ymax],[zmin,zmax],'-r')
 fill3([xmin xmax xmax xmin], [ymin ymin ymax ymax], [zmax zmax zmax zmax], 'r');
 
-xmin=0; xmax=LTF; ymin=WTS+STF; ymax=2*WTS+STF; zmin=0; zmax=HTA;
+xmin=-DTF-LTF; xmax=-DTF; ymin=STF/2; ymax=STF/2+WTS; zmin=0; zmax=HTA;
 plot3([xmin,xmin],[ymin,ymin],[zmin,zmax],'-r')
 plot3([xmax,xmax],[ymin,ymin],[zmin,zmax],'-r')
 plot3([xmax,xmax],[ymax,ymax],[zmin,zmax],'-r')
 plot3([xmin,xmin],[ymax,ymax],[zmin,zmax],'-r')
 fill3([xmin xmax xmax xmin], [ymin ymin ymax ymax], [zmax zmax zmax zmax], 'r');
 
-xmin=LTF+DTF+DTT; xmax=LTF+DTF+DTT+LTT; ymin=(WTS+STF)/2; ymax=ymin+WTS; zmin=0; zmax=HTC;
+xmin=DTT; xmax=DTT+LTT; ymin=-WTS/2; ymax=WTS/2; zmin=0; zmax=HTC;
 plot3([xmin,xmin],[ymin,ymin],[zmin,zmax],'-r')
 plot3([xmax,xmax],[ymin,ymin],[zmin,zmax],'-r')
 plot3([xmax,xmax],[ymax,ymax],[zmin,zmax],'-r')
@@ -43,8 +43,8 @@ fill3([xmin xmax xmax xmin], [ymin ymin ymax ymax], [zmax zmax zmax zmax], 'r');
 %     0 0 0 -pi/2
 %     0 0 LD 0
 %     ];
-DH = [ 0 0 H pi/2
-    pi/2 0 LX pi/2 %extra
+DH = [ pi/2 0 H -pi/2
+    -pi/2 0 LX -pi/2 %extra
     pi/2 0 LA pi/2
     0 0 0 -pi/2
     0 0 LB pi/2
