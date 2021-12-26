@@ -1,109 +1,94 @@
-function Q = invkin(x, y, z, d1, d2, d3, d5, d7, d9)
+function Q = invkin(x, y, z, H, LX, LA, LB, LC, LD)
     pwx=x;
     pwy=y;
-    pwz=z+d9;
+    pwz=z+LD;
 
-    %% theta6
-    q6A=acos((pwx^2+pwy^2+(pwz-d3-d5)^2-d5^2-d7^2)/(2*d5*d7));
+    %% theta5
+    q5=acos(((pwx-LA)^2+(pwy+LX)^2+(pwz-H)^2-LB^2-LC^2)/(2*LB*LC));
 
     % test if solutions are real: Nan if not!
-    if ~isreal(q6A)
-        q6A=nan;
+    if ~isreal(q5)
+        q5=nan;
     end
 
-    q6=[q6A -q6A]
-
-    %% theta4
-    aux=d5^2+d7^2+2*d5*d7*cos(q6)-(pwz-d3-d5)^2;
-
-    q4A=2*atan2(-d7*sin(q6)+aux, d7*cos(q6)+pwz-d3);
-    q4B=2*atan2(-d7*sin(q6)-aux, d7*cos(q6)+pwz-d3);
-    q4=[q4A q4B]
-    q6=[q6 q6];
+    q5=[q5 -q5];
 
     %% theta3
-    q3 = zeros(1, length(q6));
-    for i=1:length(q6)
-        aux = d7*sin(q6(i))*cos(q4(i))+d5*sin(q4(i))+d7*cos(q6(i))*sin(q4(i));
-        q3(i) = atan2(pwx*-sign(aux), pwy*sign(aux));
+    aux=LB^2+LC^2+2*LB*LC*cos(q5)-(pwx-LA)^2;
+
+    q3=[2*atan2(-LC*sin(q5)+sqrt(aux), LB+LC*cos(q5)+pwx-LA) 2*atan2(-LC*sin(q5)-sqrt(aux), LB+LC*cos(q5)+pwx-LA)];
+    q5=[q5 q5];
+
+    %% theta2
+    q2 = zeros(1, length(q5));
+    for i=1:length(q5)
+        aux = LB*sin(q3(i))+LC*sin(q5(i))*cos(q3(i))+LC*cos(q5(i))*sin(q3(i));
+        q2(i) = atan2((pwz-H)*sign(aux), (pwy+LX)*sign(aux));
     end
-    q3
-    q4
-    q6
+%     q2
+%     q3
+%     q5
 
     %%
-%     DH = [ 0 0 d1 pi/2
-%         pi/2 0 d2 pi/2 %extra
-%         pi/2 0 d3 pi/2
-%         0 0 0 -pi/2
-%         0 0 d5 pi/2
-%         pi/2 d7 0 0
-%         -pi/2 0 0 -pi/2 %extra
-%         0 0 0 pi/2
-%         0 0 0 -pi/2
-%         0 0 d9 0
-%     ];
-    allDH = zeros(4,4,length(q6));
-    for i=1:length(q6)
-        DH = [ 0 0 d1 pi/2
-            pi/2 0 d2 pi/2 %extra
-            q3(i)+pi/2 0 d3 pi/2
-            q4(i) 0 0 -pi/2
-            0 0 d5 pi/2
-            q6(i)+pi/2 d7 0 0
+    allDH = zeros(4,4,length(q5));
+    for i=1:length(q5)
+        DH = [ 0 0 H pi/2
+            pi/2 0 LX pi/2 %extra
+            q2(i)+pi/2 0 LA pi/2
+            q3(i) 0 0 -pi/2
+            0 0 LB pi/2
+            q5(i)+pi/2 LC 0 0
             -pi/2 0 0 -pi/2 %extra
-%             0 0 0 pi/2
-%             0 0 0 -pi/2
-%             0 0 d9 0
         ];
 
         res = Tlinks(DH);
-        allDH(:,:,i) = res(:,:,7) * res(:,:,6) * res(:,:,5) * res(:,:,4) * res(:,:,3) * res(:,:,2) * res(:,:,1);
+        allDH(:,:,i) = res(:,:,1) * res(:,:,2) * res(:,:,3) * res(:,:,4) * res(:,:,5) * res(:,:,6) * res(:,:,7);
     end
+    allDH(:,:,1)
     
     % rotx(pi) ou rotz(pi)*rotx(pi)
     p = zeros(4,4,2);
     %p(:,:,1) = trans(x,y,z)*rotx(pi);
     p(:,:,1) = [
         1 0 0 x
-        0 1 0 y
+        0 -1 0 y
         0 0 -1 z
         0 0 0 1
         ];
     %p(:,:,2) = trans(x,y,z)*rotz(pi)*rotx(pi);
     p(:,:,2) = [
         -1 0 0 x
-        0 -1 0 y
+        0 1 0 y
         0 0 -1 z
         0 0 0 1
         ];
 
-    res = zeros(2*length(q6),4,4);
+    res = zeros(2*length(q5),4,4);
 
     for i=1:2
-        for j=1:length(q6)
-            res((i-1)*length(q6)+j,:,:) = inv(allDH(:,:,j))*p(:,:,i);
+        for j=1:length(q5)
+            res((i-1)*length(q5)+j,:,:) = inv(allDH(:,:,j))*p(:,:,i);
         end
     end
-    q6=[q6 q6];
+    q2=[q2 q2];
     q3=[q3 q3];
-    q4=[q4 q4];
+    q5=[q5 q5];
 
-    %% theta7, theta8, theta9
-    q8 = [atan2(sqrt(res(:,1,3)'.^2 + res(:,2,3)'.^2), res(:,3,3)') atan2(-sqrt(res(:,1,3)'.^2 + res(:,2,3)'.^2), res(:,3,3)')];
-    q7 = [atan2(-res(:,2,3)',-res(:,1,3)') atan2(res(:,2,3)',res(:,1,3)')];
-    q9 = [atan2(res(:,3,2)', -res(:,3,1)') atan2(-res(:,3,2)', res(:,3,1)')];
-    q6=[q6 q6];
+    %% theta6, theta7, theta8
+    q7 = [atan2(sqrt(res(:,1,3)'.^2 + res(:,2,3)'.^2), res(:,3,3)') atan2(-sqrt(res(:,1,3)'.^2 + res(:,2,3)'.^2), res(:,3,3)')];
+    q6 = [atan2(-res(:,2,3)',-res(:,1,3)') atan2(res(:,2,3)',res(:,1,3)')];
+    q8 = [atan2(res(:,3,2)', -res(:,3,1)') atan2(-res(:,3,2)', res(:,3,1)')];
+    q2=[q2 q2];
     q3=[q3 q3];
-    q4=[q4 q4];
+    q5=[q5 q5];
 
-    q3
-    q4
-    q6
-    q7
-    q8
-    q9
+%     q2
+%     q3
+%     q5
+%     q6
+%     q7
+%     q8
 
-    Q=[zeros(1,16);zeros(1,16);q3;q4;zeros(1,16);q6;zeros(1,16);q7;q8;q9];
+    Q=[zeros(1,16);zeros(1,16);q2;q3;zeros(1,16);q5;zeros(1,16);q6;q7;q8];
 end
 
