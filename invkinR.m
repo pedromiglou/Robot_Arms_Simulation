@@ -1,4 +1,4 @@
-function Q = invkin(x, y, z, H, LX, LA, LB, LC, LD)
+function Q = invkinR(x, y, z, H, LX, LA, LB, LC, LD)
     pwx=x;
     pwy=y;
     pwz=z+LD;
