@@ -1,4 +1,3 @@
-addpath ./lib/
 addpath ./Robot_Arms_Simulation/
 
 close;
@@ -31,6 +30,8 @@ plot3([xmax,xmax],[ymin,ymin],[zmin,zmax],'-r')
 plot3([xmax,xmax],[ymax,ymax],[zmin,zmax],'-r')
 plot3([xmin,xmin],[ymax,ymax],[zmin,zmax],'-r')
 fill3([xmin xmax xmax xmin], [ymin ymin ymax ymax], [zmax zmax zmax zmax], 'r');
+
+block= Block(trans(-DTF-LTF+WBL/2, -STF/2-WTS/2, HTB+HBL), LBL, WBL, HBL, 'b');
 
 % draw robot right arm
 % DH = [ pi/2 0 H -pi/2
@@ -76,10 +77,40 @@ DH = [ pi/2 0 H -pi/2
 ];
 
 Qi = [0 0 0 0 0 0 0 0 0 0]';
-Qf = invkinL(100,100,700, H, LX, LA,LB,LC,LD);
+Qf = invkinL(-DTF-WBL/2,-STF/2-WTS/2,HTB+HBL, H, LX, LA,LB,LC,LD);
 QQ=[Qi(:, 1) Qf(:, 1)];
 
-[H, h, P, AAA] = InitRobot(QQ,50,DH);
-while 1
-    AnimateRobot(H,AAA,P,h,0.05, true)
+NN=50;
+[H2, h, P, AAA] = InitRobot(QQ,NN,DH);
+
+for i=1:50
+    Org = LinkOrigins(AAA(:,:,:,i));
+    h.XData=Org(1,:);
+    h.YData=Org(2,:);
+    h.ZData=Org(3,:);
+
+    block = block.update(trans(-DTF-LTF+WBL/2+i/50*(LTF-WBL), -STF/2-WTS/2, HTB+HBL));
+    pause(0.05);
 end
+
+Qi = QQ(:,2);
+Qf = invkinL(-DTF/2,-LBL/2,H-LD, H, LX, LA,LB,LC,LD);
+QQ=[Qi(:, 1) Qf(:, 1)];
+jTypes = zeros(height(DH), 1);
+
+MQ=[];
+for n=1: width(QQ)-1
+    Qi=QQ(:, n);
+    Qf=QQ(:,n+1);
+    NN=NN(min(n, numel(NN))); %
+    MQ=[MQ, LinspaceVect(Qi, Qf, NN)];
+end
+
+MDH=GenerateMultiDH(DH, MQ, jTypes);
+AAA = CalculateRobotMotion(MDH);
+
+AnimateRobot(H2,AAA,P,h,0.05, true, block)
+
+% while 1
+%     AnimateRobot(H,AAA,P,h,0.05, true)
+% end
