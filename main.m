@@ -93,18 +93,20 @@ rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
 
 AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftBlock, rightBlock);
 
-% Qi = leftQQ(:,2);
-% Qf = leftQQ(:,2);
-% Qf(1)=pi;
-% leftQQ=[Qi(:, 1) Qf(:, 1)];
-% leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
-% 
-% AnimateRobot(leftAAA,leftH,0.05, true, leftBlock);
-% 
-% Qi = leftQQ(:,2);
-% Qf = invkinL(-DTT-WBL/2,-LBL/2,HTC+HBL, H, LX, LA,LB,LC,LD);
-% Qf(1)=pi;
-% leftQQ=[Qi(:, 1) Qf(:, 1)];
-% leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
-% 
-% AnimateRobot(leftAAA,leftH,0.05, true, leftBlock);
+leftQQ=[leftQQ(:,2) leftQQ(:,2)];
+leftQQ(1,:) = [0 pi];
+rightQQ=[rightQQ(:,2) rightQQ(:,2)];
+rightQQ(1,:) = [0 pi];
+leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
+rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
+
+AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftBlock, rightBlock);
+
+leftQQ=[leftQQ(:,2) invkinL(-DTT-WBL/2,-LBL/2,HTC+HBL, H, LX, LA,LB,LC,LD)];
+leftQQ(1,2) = pi;
+rightQQ=[rightQQ(:,2) invkinR(-DTT-WBL/2,LBL/2,HTC+HBL, H, LX, LA,LB,LC,LD)];
+rightQQ(1,2) = pi;
+leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
+rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
+
+AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftBlock, rightBlock);
