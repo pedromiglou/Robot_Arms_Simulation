@@ -33,8 +33,10 @@ fill3([xmin xmax xmax xmin], [ymin ymin ymax ymax], [zmax zmax zmax zmax], 'r');
 
 block= Block(trans(-DTF-LTF+WBL/2, -STF/2-WTS/2, HTB+HBL), LBL, WBL, HBL, 'b');
 
-% draw robot right arm
-% DH = [ pi/2 0 H -pi/2
+NN=50;
+
+% right arm
+% rightDH = [ pi/2 0 H -pi/2
 %     -pi/2 0 LX -pi/2 %extra
 %     pi/2 0 LA pi/2
 %     0 0 0 -pi/2
@@ -49,22 +51,11 @@ block= Block(trans(-DTF-LTF+WBL/2, -STF/2-WTS/2, HTB+HBL), LBL, WBL, HBL, 'b');
 % Qi = [0 0 0 0 0 0 0 0 0 0]';
 % Qf = invkinR(100,100,700, H, LX, LA,LB,LC,LD);
 % QQ=[Qi(:, 1) Qf(:, 1)];
-%         DH = [ 0 0 H pi/2
-%             pi/2 0 LX pi/2 %extra
-%             Q(3,1)+pi/2 0 LA pi/2
-%             Q(4,1) 0 0 -pi/2
-%             0 0 LB pi/2
-%             Q(6,1)+pi/2 LC 0 0
-%             -pi/2 0 0 -pi/2 %extra
-%             Q(8,1) 0 0 pi/2
-%             Q(9,1) 0 0 -pi/2
-%             Q(10,1) 0 LD 0
-%         ];
-% res = Tlinks(DH);
-% res(:,:,1) * res(:,:,2) * res(:,:,3) * res(:,:,4) * res(:,:,5) * res(:,:,6) * res(:,:,7) * res(:,:,8) * res(:,:,9) * res(:,:,10)
+% 
+% [H2, h, P, AAA] = InitRobot(QQ,NN,leftDH);
 
-% draw robot left arm
-DH = [ pi/2 0 H -pi/2
+% left arm
+leftDH = [ pi/2 0 H -pi/2
     -pi/2 0 LX pi/2 %extra
     -pi/2 0 LA -pi/2
     0 0 0 pi/2
@@ -80,8 +71,7 @@ Qi = [0 0 0 0 0 0 0 0 0 0]';
 Qf = invkinL(-DTF-WBL/2,-STF/2-WTS/2,HTB+HBL, H, LX, LA,LB,LC,LD);
 QQ=[Qi(:, 1) Qf(:, 1)];
 
-NN=50;
-[H2, h, P, AAA] = InitRobot(QQ,NN,DH);
+[H2, h, P, AAA] = InitRobot(QQ,NN,leftDH);
 
 for i=1:50
     Org = LinkOrigins(AAA(:,:,:,i));
@@ -96,21 +86,22 @@ end
 Qi = QQ(:,2);
 Qf = invkinL(-DTF/2,-LBL/2,H-LD, H, LX, LA,LB,LC,LD);
 QQ=[Qi(:, 1) Qf(:, 1)];
-jTypes = zeros(height(DH), 1);
-
-MQ=[];
-for n=1: width(QQ)-1
-    Qi=QQ(:, n);
-    Qf=QQ(:,n+1);
-    NN=NN(min(n, numel(NN))); %
-    MQ=[MQ, LinspaceVect(Qi, Qf, NN)];
-end
-
-MDH=GenerateMultiDH(DH, MQ, jTypes);
-AAA = CalculateRobotMotion(MDH);
+AAA = ObtainRobotMotion(QQ, leftDH, NN);
 
 AnimateRobot(H2,AAA,P,h,0.05, true, block)
 
-% while 1
-%     AnimateRobot(H,AAA,P,h,0.05, true)
-% end
+Qi = QQ(:,2);
+Qf = QQ(:,2);
+Qf(1)=pi;
+QQ=[Qi(:, 1) Qf(:, 1)];
+AAA = ObtainRobotMotion(QQ, leftDH, NN);
+
+AnimateRobot(H2,AAA,P,h,0.05, true, block)
+
+Qi = QQ(:,2);
+Qf = invkinL(-DTT-WBL/2,-LBL/2,HTC+HBL, H, LX, LA,LB,LC,LD);
+Qf(1)=pi;
+QQ=[Qi(:, 1) Qf(:, 1)];
+AAA = ObtainRobotMotion(QQ, leftDH, NN);
+
+AnimateRobot(H2,AAA,P,h,0.05, true, block)
