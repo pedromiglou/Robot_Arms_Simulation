@@ -31,28 +31,10 @@ plot3([xmax,xmax],[ymax,ymax],[zmin,zmax],'-r')
 plot3([xmin,xmin],[ymax,ymax],[zmin,zmax],'-r')
 fill3([xmin xmax xmax xmin], [ymin ymin ymax ymax], [zmax zmax zmax zmax], 'r');
 
-block= Block(trans(-DTF-LTF+WBL/2, -STF/2-WTS/2, HTB+HBL), LBL, WBL, HBL, 'b');
+leftBlock= Block(trans(-DTF-LTF+WBL/2, -STF/2-WTS/2, HTB+HBL), LBL, WBL, HBL, 'b');
+rightBlock= Block(trans(-DTF-LTF+WBL/2, STF/2+WTS/2, HTA+HBL), LBL, WBL, HBL, 'b');
 
 NN=50;
-
-% right arm
-% rightDH = [ pi/2 0 H -pi/2
-%     -pi/2 0 LX -pi/2 %extra
-%     pi/2 0 LA pi/2
-%     0 0 0 -pi/2
-%     0 0 LB pi/2
-%     pi/2 LC 0 0
-%     -pi/2 0 0 -pi/2 %extra
-%     0 0 0 pi/2
-%     0 0 0 -pi/2
-%     0 0 LD 0
-% ];
-% 
-% Qi = [0 0 0 0 0 0 0 0 0 0]';
-% Qf = invkinR(100,100,700, H, LX, LA,LB,LC,LD);
-% QQ=[Qi(:, 1) Qf(:, 1)];
-% 
-% [H2, h, P, AAA] = InitRobot(QQ,NN,leftDH);
 
 % left arm
 leftDH = [ pi/2 0 H -pi/2
@@ -67,41 +49,62 @@ leftDH = [ pi/2 0 H -pi/2
     0 0 LD 0
 ];
 
-Qi = [0 0 0 0 0 0 0 0 0 0]';
-Qf = invkinL(-DTF-WBL/2,-STF/2-WTS/2,HTB+HBL, H, LX, LA,LB,LC,LD);
-QQ=[Qi(:, 1) Qf(:, 1)];
+% right arm
+rightDH = [ pi/2 0 H -pi/2
+    -pi/2 0 LX -pi/2 %extra
+    pi/2 0 LA pi/2
+    0 0 0 -pi/2
+    0 0 LB pi/2
+    pi/2 LC 0 0
+    -pi/2 0 0 -pi/2 %extra
+    0 0 0 pi/2
+    0 0 0 -pi/2
+    0 0 LD 0
+];
 
-[H2, h, P, AAA] = InitRobot(QQ,NN,leftDH);
+[leftH, rightH] = InitRobot(leftDH, rightDH);
+
+leftQQ=[zeros(10,1) invkinL(-DTF-WBL/2,-STF/2-WTS/2,HTB+HBL, H, LX, LA,LB,LC,LD)];
+rightQQ=[zeros(10,1) invkinR(-DTF-WBL/2,STF/2+WTS/2,HTA+HBL, H, LX, LA,LB,LC,LD)];
+
+leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
+rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
 
 for i=1:50
-    Org = LinkOrigins(AAA(:,:,:,i));
-    h.XData=Org(1,:);
-    h.YData=Org(2,:);
-    h.ZData=Org(3,:);
+    Org = LinkOrigins(leftAAA(:,:,:,i));
+    leftH.XData=Org(1,:);
+    leftH.YData=Org(2,:);
+    leftH.ZData=Org(3,:);
 
-    block = block.update(trans(-DTF-LTF+WBL/2+i/50*(LTF-WBL), -STF/2-WTS/2, HTB+HBL));
+    Org = LinkOrigins(rightAAA(:,:,:,i));
+    rightH.XData=Org(1,:);
+    rightH.YData=Org(2,:);
+    rightH.ZData=Org(3,:);
+
+    leftBlock = leftBlock.update(trans(-DTF-LTF+WBL/2+i/50*(LTF-WBL), -STF/2-WTS/2, HTB+HBL));
+    rightBlock = rightBlock.update(trans(-DTF-LTF+WBL/2+i/50*(LTF-WBL), STF/2+WTS/2, HTC+HBL));
     pause(0.05);
 end
 
-Qi = QQ(:,2);
-Qf = invkinL(-DTF/2,-LBL/2,H-LD, H, LX, LA,LB,LC,LD);
-QQ=[Qi(:, 1) Qf(:, 1)];
-AAA = ObtainRobotMotion(QQ, leftDH, NN);
+leftQQ=[leftQQ(:,2) invkinL(-DTF/2,-LBL/2,H-LD, H, LX, LA,LB,LC,LD)];
+rightQQ=[rightQQ(:,2) invkinR(-DTF/2,LBL/2,H-LD, H, LX, LA,LB,LC,LD)];
+leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
+rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
 
-AnimateRobot(H2,AAA,P,h,0.05, true, block)
+AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftBlock, rightBlock);
 
-Qi = QQ(:,2);
-Qf = QQ(:,2);
-Qf(1)=pi;
-QQ=[Qi(:, 1) Qf(:, 1)];
-AAA = ObtainRobotMotion(QQ, leftDH, NN);
-
-AnimateRobot(H2,AAA,P,h,0.05, true, block)
-
-Qi = QQ(:,2);
-Qf = invkinL(-DTT-WBL/2,-LBL/2,HTC+HBL, H, LX, LA,LB,LC,LD);
-Qf(1)=pi;
-QQ=[Qi(:, 1) Qf(:, 1)];
-AAA = ObtainRobotMotion(QQ, leftDH, NN);
-
-AnimateRobot(H2,AAA,P,h,0.05, true, block)
+% Qi = leftQQ(:,2);
+% Qf = leftQQ(:,2);
+% Qf(1)=pi;
+% leftQQ=[Qi(:, 1) Qf(:, 1)];
+% leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
+% 
+% AnimateRobot(leftAAA,leftH,0.05, true, leftBlock);
+% 
+% Qi = leftQQ(:,2);
+% Qf = invkinL(-DTT-WBL/2,-LBL/2,HTC+HBL, H, LX, LA,LB,LC,LD);
+% Qf(1)=pi;
+% leftQQ=[Qi(:, 1) Qf(:, 1)];
+% leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
+% 
+% AnimateRobot(leftAAA,leftH,0.05, true, leftBlock);
