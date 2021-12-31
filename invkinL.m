@@ -75,7 +75,7 @@ function Q = invkinL(x, y, z, H, LX, LA, LB, LC, LD)
     q5=[q5 q5];
 
     %% theta6, theta7, theta8
-    q7 = [atan2(sqrt(res(:,1,3)'.^2 + res(:,2,3)'.^2), res(:,3,3)') atan2(-sqrt(res(:,1,3)'.^2 + res(:,2,3)'.^2), res(:,3,3)')];
+    q7 = [atan2(sqrt(res(:,1,3)'.^2 + res(:,2,3)'.^2), res(:,3,3)') atan2(- sqrt(res(:,1,3)'.^2 + res(:,2,3)'.^2), res(:,3,3)')];
     q6 = [atan2(res(:,2,3)',res(:,1,3)') atan2(-res(:,2,3)',-res(:,1,3)')];
     q8 = [atan2(res(:,3,2)', -res(:,3,1)') atan2(-res(:,3,2)', res(:,3,1)')];
     q2=[q2 q2];
@@ -90,5 +90,23 @@ function Q = invkinL(x, y, z, H, LX, LA, LB, LC, LD)
 %     q8
 
     Q=[zeros(1,16);zeros(1,16);q2;q3;zeros(1,16);q5;zeros(1,16);q6;q7;q8];
+
+    for i=1:size(Q,1)
+        for j=1:size(Q,2)
+            if Q(i,j)>pi
+                Q(i,j) = Q(i,j) - 2*pi;
+            end
+            if Q(i,j)<-pi
+                Q(i,j) = Q(i,j) + 2*pi;
+            end
+        end
+    end
+
+    if ~any(isnan(Q))
+        RowSum = sum(abs(Q),1);
+        [~,n] = min(RowSum);
+        Q = Q(:,n);
+    end
+
 end
 

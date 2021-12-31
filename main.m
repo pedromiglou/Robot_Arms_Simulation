@@ -64,8 +64,9 @@ rightDH = [ pi/2 0 H -pi/2
 
 [leftH, rightH] = InitRobot(leftDH, rightDH);
 
-leftQQ=[zeros(10,1) invkinL(-DTF-WBL/2,-STF/2-WTS/2,HTB+HBL, H, LX, LA,LB,LC,LD)];
-rightQQ=[zeros(10,1) invkinR(-DTF-WBL/2,STF/2+WTS/2,HTA+HBL, H, LX, LA,LB,LC,LD)];
+%% go to 50 units above pickup position
+leftQQ=[zeros(10,1) invkinL(-DTF-WBL/2,-STF/2-WTS/2,HTB+HBL+50, H, LX, LA,LB,LC,LD)];
+rightQQ=[zeros(10,1) invkinR(-DTF-WBL/2,STF/2+WTS/2,HTA+HBL+50, H, LX, LA,LB,LC,LD)];
 
 leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
 rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
@@ -86,26 +87,60 @@ for i=1:50
     pause(0.05);
 end
 
-leftQQ=[leftQQ(:,2) invkinL(-DTF/2,-LBL/2,H-LD, H, LX, LA,LB,LC,LD)];
-rightQQ=[rightQQ(:,2) invkinR(-DTF/2,LBL/2,H-LD, H, LX, LA,LB,LC,LD)];
+%% go down 50 units 
+N=50;
+dr=([0;0;-50;0;0])/N;
+
+leftQ=leftQQ(:,2);
+leftQQ=leftQQ(:,2);
+rightQ=rightQQ(:,2);
+rightQQ=rightQQ(:,2);
+for n=1:N-1
+    Ji=jacobianLInv(leftQ,H,LX,LA,LB,LC,LD);
+    dq =Ji*dr;
+    leftQ=leftQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5)  0 ]';
+    leftQQ=[leftQQ leftQ];
+
+    Ji=jacobianRInv(rightQ,H,LX,LA,LB,LC,LD);
+    dq =Ji*dr;
+    rightQ=rightQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5)  0 ]';
+    rightQQ=[rightQQ rightQ];
+end
+
+MDH=GenerateMultiDH(leftDH, leftQQ, zeros(height(leftDH), 1));
+leftAAA = CalculateRobotMotion(MDH);
+MDH=GenerateMultiDH(rightDH, rightQQ, zeros(height(rightDH), 1));
+rightAAA = CalculateRobotMotion(MDH);
+
+AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true);
+
+%% motion to joining position
+leftQQ=[leftQQ(:,end) invkinL(-DTF/2,-LBL/2,H-LD, H, LX, LA,LB,LC,LD)];
+%rightQQ=[rightQQ(:,end) invkinR(-DTF/2,LBL/2,H-LD, H, LX, LA,LB,LC,LD)];
+rightQQ=[rightQQ(:,end) -leftQQ(:,2)];
 leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
 rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
 
 AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftBlock, rightBlock);
 
+%% rotate robot
 leftQQ=[leftQQ(:,2) leftQQ(:,2)];
 leftQQ(1,:) = [0 pi];
-rightQQ=[rightQQ(:,2) rightQQ(:,2)];
+% rightQQ=[rightQQ(:,2) rightQQ(:,2)];
+rightQQ = -leftQQ;
 rightQQ(1,:) = [0 pi];
 leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
 rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
 
 AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftBlock, rightBlock);
 
+%% put down blocks
 leftQQ=[leftQQ(:,2) invkinL(-DTT-WBL/2,-LBL/2,HTC+HBL, H, LX, LA,LB,LC,LD)];
 leftQQ(1,2) = pi;
 rightQQ=[rightQQ(:,2) invkinR(-DTT-WBL/2,LBL/2,HTC+HBL, H, LX, LA,LB,LC,LD)];
+%rightQQ = [leftQQ(:,1) -leftQQ(:,2)];
 rightQQ(1,2) = pi;
+%rightQQ(1,1) = pi;
 leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
 rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
 

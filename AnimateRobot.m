@@ -35,7 +35,7 @@ function AnimateRobot(leftAAA, rightAAA, leftH, rightH, sd, plotPath, leftBlock,
         end
 
         if plotPath
-            plot3(T(1,4), T(2,4), T(3,4), '.r');
+            plot3(T(1,4), T(2,4), T(3,4), '.g');
         end
 
         if nargin == 8
