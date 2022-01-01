@@ -33,21 +33,3 @@ A7 = Tlink(theta7, 0, 0, -halfpi);
 A8 = Tlink(theta8, 0, LD, 0);
 
 A68 = simplify(A6*A7*A8);
-
-assume(sin(2*halfpi)==0);
-A16 = simplify(A16);
-A18 = simplify(A16*A68);
-
-assume(sin(halfpi)==1);
-A16 = simplify(A16);
-A18 = simplify(A18);
-
-xi = A16(1,4);
-yi = A16(2,4);
-zi = A16(3,4);
-
-xf = A18(1,4);
-yf = A18(2,4);
-zf = A18(3,4);
-
-J=jacobian([xi, yi, zi, xf, yf],[theta2 theta3 theta5 theta6 theta7])
