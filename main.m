@@ -83,7 +83,7 @@ for i=1:50
     rightH.ZData=Org(3,:);
 
     leftBlock = leftBlock.update(trans(-DTF-LTF+WBL/2+i/50*(LTF-WBL), -STF/2-WTS/2, HTB+HBL));
-    rightBlock = rightBlock.update(trans(-DTF-LTF+WBL/2+i/50*(LTF-WBL), STF/2+WTS/2, HTC+HBL));
+    rightBlock = rightBlock.update(trans(-DTF-LTF+WBL/2+i/50*(LTF-WBL), STF/2+WTS/2, HTA+HBL));
     pause(0.05);
 end
 
@@ -153,8 +153,7 @@ AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftBlock, rightBlock
 %% rotate robot
 leftQQ=[leftQQ(:,end) leftQQ(:,end)];
 leftQQ(1,:) = [0 pi];
-% rightQQ=[rightQQ(:,2) rightQQ(:,2)];
-rightQQ = -leftQQ;
+rightQQ=[rightQQ(:,end) rightQQ(:,end)];
 rightQQ(1,:) = [0 pi];
 leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
 rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
@@ -187,3 +186,53 @@ MDH=GenerateMultiDH(rightDH, rightQQ, zeros(height(rightDH), 1));
 rightAAA = CalculateRobotMotion(MDH);
 
 AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.005, true, leftBlock, rightBlock);
+
+%% go down 50 units 
+N=50;
+dr=([0;0;-50;0;0;0])/N;
+
+leftQ=leftQQ(:,end);
+leftQQ=leftQQ(:,end);
+rightQ=rightQQ(:,end);
+rightQQ=rightQQ(:,end);
+for n=1:N
+    Ji=jacobianLInv(leftQ,H,LX,LA,LB,LC,LD);
+    dq =Ji*dr;
+    leftQ=leftQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
+    leftQQ=[leftQQ leftQ];
+
+    Ji=jacobianRInv(rightQ,H,LX,LA,LB,LC,LD);
+    dq =Ji*dr;
+    rightQ=rightQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
+    rightQQ=[rightQQ rightQ];
+end
+
+MDH=GenerateMultiDH(leftDH, leftQQ, zeros(height(leftDH), 1));
+leftAAA = CalculateRobotMotion(MDH);
+MDH=GenerateMultiDH(rightDH, rightQQ, zeros(height(rightDH), 1));
+rightAAA = CalculateRobotMotion(MDH);
+
+AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftBlock, rightBlock);
+
+%% send away block and return robot to original position
+leftQQ=[zeros(10,1) invkinL(-DTF-WBL/2, -STF/2-WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
+rightQQ=[zeros(10,1) invkinR(-DTF-WBL/2, STF/2+WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
+
+leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
+rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
+
+for i=1:50
+    Org = LinkOrigins(leftAAA(:,:,:,i));
+    leftH.XData=Org(1,:);
+    leftH.YData=Org(2,:);
+    leftH.ZData=Org(3,:);
+
+    Org = LinkOrigins(rightAAA(:,:,:,i));
+    rightH.XData=Org(1,:);
+    rightH.YData=Org(2,:);
+    rightH.ZData=Org(3,:);
+
+    leftBlock = leftBlock.update(trans(DTT+WBL/2+i/50*(LTT-WBL), LBL/2, HTC+HBL));
+    rightBlock = rightBlock.update(trans(DTT+WBL/2+i/50*(LTT-WBL), -LBL/2, HTC+HBL));
+    pause(0.05);
+end

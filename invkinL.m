@@ -1,4 +1,11 @@
 function Q = invkinL(x, y, z, H, LX, LA, LB, LC, LD)
+    turned = 0;
+    if x>0
+        turned=1;
+        x=-x;
+        y=-y;
+    end
+
     pwx=x;
     pwy=y;
     pwz=z+LD;
@@ -108,5 +115,8 @@ function Q = invkinL(x, y, z, H, LX, LA, LB, LC, LD)
         Q = Q(:,n);
     end
 
+    if turned
+        Q(1)=pi;
+    end
 end
 
