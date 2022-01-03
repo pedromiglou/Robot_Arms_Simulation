@@ -62,7 +62,10 @@ rightDH = [ pi/2 0 H -pi/2
     0 0 LD 0
 ];
 
+%draw robot and grippers
 [leftH, rightH] = InitRobot(leftDH, rightDH);
+leftGripper = Gripper(trans(-LX, -LA-LB-LC-LD, H)*rotx(-pi/2), LBL/3, WBL*1.05, HBL, 'r');
+rightGripper = Gripper(trans(-LX, LA+LB+LC+LD, H)*rotx(pi/2), LBL/3, WBL*1.05, HBL, 'r');
 
 %% go to 50 units above pickup position
 leftQQ=[zeros(10,1) invkinL(-DTF-WBL/2,-STF/2-WTS/2,HTB+HBL+50, H, LX, LA,LB,LC,LD)];
@@ -77,10 +80,24 @@ for i=1:50
     leftH.YData=Org(2,:);
     leftH.ZData=Org(3,:);
 
+    T = eye(4);
+    for j = 1:size(leftAAA,3)
+        T = T*leftAAA(:,:,j,i);
+    end
+
+    leftGripper.update(T);
+
     Org = LinkOrigins(rightAAA(:,:,:,i));
     rightH.XData=Org(1,:);
     rightH.YData=Org(2,:);
     rightH.ZData=Org(3,:);
+
+    T = eye(4);
+    for j = 1:size(rightAAA,3)
+        T = T*rightAAA(:,:,j,i);
+    end
+
+    rightGripper.update(T);
 
     leftBlock = leftBlock.update(trans(-DTF-LTF+WBL/2+i/50*(LTF-WBL), -STF/2-WTS/2, HTB+HBL));
     rightBlock = rightBlock.update(trans(-DTF-LTF+WBL/2+i/50*(LTF-WBL), STF/2+WTS/2, HTA+HBL));
@@ -112,7 +129,7 @@ leftAAA = CalculateRobotMotion(MDH);
 MDH=GenerateMultiDH(rightDH, rightQQ, zeros(height(rightDH), 1));
 rightAAA = CalculateRobotMotion(MDH);
 
-AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true);
+AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftGripper, rightGripper);
 
 %% motion to 50 units away from joining position
 leftQQ=[leftQQ(:,end) invkinL(-DTF,-LBL/2-50,H-LD, H, LX, LA,LB,LC,LD)];
@@ -121,7 +138,7 @@ rightQQ=[rightQQ(:,end) -leftQQ(:,2)];
 leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
 rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
 
-AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftBlock, rightBlock);
+AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftGripper, rightGripper, leftBlock, rightBlock);
 
 %% 50 units movement to join
 N=50;
@@ -148,7 +165,7 @@ leftAAA = CalculateRobotMotion(MDH);
 MDH=GenerateMultiDH(rightDH, rightQQ, zeros(height(rightDH), 1));
 rightAAA = CalculateRobotMotion(MDH);
 
-AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftBlock, rightBlock);
+AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftGripper, rightGripper, leftBlock, rightBlock);
 
 %% rotate robot
 leftQQ=[leftQQ(:,end) leftQQ(:,end)];
@@ -158,7 +175,7 @@ rightQQ(1,:) = [0 pi];
 leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
 rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
 
-AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftBlock, rightBlock);
+AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftGripper, rightGripper, leftBlock, rightBlock);
 
 %% put down blocks (DTF,LBL/2,H-LD)->(DTT+WBL/2,LBL/2,HTC+HBL)
 N=400;
@@ -185,7 +202,7 @@ leftAAA = CalculateRobotMotion(MDH);
 MDH=GenerateMultiDH(rightDH, rightQQ, zeros(height(rightDH), 1));
 rightAAA = CalculateRobotMotion(MDH);
 
-AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.005, true, leftBlock, rightBlock);
+AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.005, true, leftGripper, rightGripper, leftBlock, rightBlock);
 
 %% go down 50 units 
 N=50;
@@ -212,7 +229,7 @@ leftAAA = CalculateRobotMotion(MDH);
 MDH=GenerateMultiDH(rightDH, rightQQ, zeros(height(rightDH), 1));
 rightAAA = CalculateRobotMotion(MDH);
 
-AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftBlock, rightBlock);
+AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftGripper, rightGripper, leftBlock, rightBlock);
 
 %% send away block and return robot to original position
 leftQQ=[zeros(10,1) invkinL(-DTF-WBL/2, -STF/2-WTS/2, H-LD, H, LX, LA,LB,LC,LD)];

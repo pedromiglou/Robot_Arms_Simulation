@@ -1,4 +1,4 @@
-function AnimateRobot(leftAAA, rightAAA, leftH, rightH, sd, plotPath, leftBlock, rightBlock)
+function AnimateRobot(leftAAA, rightAAA, leftH, rightH, sd, plotPath, leftGripper, rightGripper, leftBlock, rightBlock)
 % H - vetor de handles dos objetos (drawframes - seixos)
 % AAA - suermatriz de posições
 % P - vertices do objeto a representar (seixos)
@@ -20,7 +20,9 @@ function AnimateRobot(leftAAA, rightAAA, leftH, rightH, sd, plotPath, leftBlock,
             plot3(T(1,4), T(2,4), T(3,4), '.r');
         end
 
-        if nargin == 8
+        leftGripper = leftGripper.update(T);
+
+        if nargin == 10
             leftBlock = leftBlock.update(T*rotx(pi));
         end
 
@@ -38,7 +40,9 @@ function AnimateRobot(leftAAA, rightAAA, leftH, rightH, sd, plotPath, leftBlock,
             plot3(T(1,4), T(2,4), T(3,4), '.g');
         end
 
-        if nargin == 8
+        rightGripper = rightGripper.update(T);
+
+        if nargin == 10
             rightBlock = rightBlock.update(T*rotx(pi));
         end
 
