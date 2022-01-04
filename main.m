@@ -133,7 +133,6 @@ AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftGripper, rightGri
 
 %% motion to 50 units away from joining position
 leftQQ=[leftQQ(:,end) invkinL(-DTF,-LBL/2-50,H-LD, H, LX, LA,LB,LC,LD)];
-%rightQQ=[rightQQ(:,end) invkinR(-DTF/2,LBL/2,H-LD, H, LX, LA,LB,LC,LD)];
 rightQQ=[rightQQ(:,end) -leftQQ(:,2)];
 leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
 rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
@@ -232,24 +231,24 @@ rightAAA = CalculateRobotMotion(MDH);
 AnimateRobot(leftAAA, rightAAA, leftH, rightH, 0.05, true, leftGripper, rightGripper, leftBlock, rightBlock);
 
 %% send away block and return robot to original position
-leftQQ=[zeros(10,1) invkinL(-DTF-WBL/2, -STF/2-WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
-rightQQ=[zeros(10,1) invkinR(-DTF-WBL/2, STF/2+WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
-
-leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
-rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
-
-for i=1:50
-    Org = LinkOrigins(leftAAA(:,:,:,i));
-    leftH.XData=Org(1,:);
-    leftH.YData=Org(2,:);
-    leftH.ZData=Org(3,:);
-
-    Org = LinkOrigins(rightAAA(:,:,:,i));
-    rightH.XData=Org(1,:);
-    rightH.YData=Org(2,:);
-    rightH.ZData=Org(3,:);
-
-    leftBlock = leftBlock.update(trans(DTT+WBL/2+i/50*(LTT-WBL), LBL/2, HTC+HBL));
-    rightBlock = rightBlock.update(trans(DTT+WBL/2+i/50*(LTT-WBL), -LBL/2, HTC+HBL));
-    pause(0.05);
-end
+% leftQQ=[zeros(10,1) invkinL(-DTF-WBL/2, -STF/2-WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
+% rightQQ=[zeros(10,1) invkinR(-DTF-WBL/2, STF/2+WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
+% 
+% leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
+% rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
+% 
+% for i=1:50
+%     Org = LinkOrigins(leftAAA(:,:,:,i));
+%     leftH.XData=Org(1,:);
+%     leftH.YData=Org(2,:);
+%     leftH.ZData=Org(3,:);
+% 
+%     Org = LinkOrigins(rightAAA(:,:,:,i));
+%     rightH.XData=Org(1,:);
+%     rightH.YData=Org(2,:);
+%     rightH.ZData=Org(3,:);
+% 
+%     leftBlock = leftBlock.update(trans(DTT+WBL/2+i/50*(LTT-WBL), LBL/2, HTC+HBL));
+%     rightBlock = rightBlock.update(trans(DTT+WBL/2+i/50*(LTT-WBL), -LBL/2, HTC+HBL));
+%     pause(0.05);
+% end
