@@ -76,6 +76,14 @@ for iter=1:1
 leftQQ=[leftQQ(:,end) invkinL(-DTF-WBL/2,-STF/2-WTS/2,HTB+HBL+50, H, LX, LA,LB,LC,LD)];
 rightQQ=[rightQQ(:,end) invkinR(-DTF-WBL/2,STF/2+WTS/2,HTA+HBL+50, H, LX, LA,LB,LC,LD)];
 
+if width(leftQQ)==1
+    error("Left block pickup position outside working space")
+end
+
+if width(rightQQ)==1
+    error("Right block pickup position outside working space")
+end
+
 leftAAA = ObtainRobotMotion(leftQQ, leftDH, N);
 rightAAA = ObtainRobotMotion(rightQQ, rightDH, N);
 
@@ -88,11 +96,21 @@ rightQ=rightQQ(:,end);
 rightQQ=rightQQ(:,end);
 for n=1:N-1
     Ji=jacobianLInv(leftQ,H,LX,LA,LB,LC,LD);
+
+    if isnan(Ji)
+        error("Left block position outside working space")
+    end
+
     dq =Ji*dr;
     leftQ=leftQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
     leftQQ=[leftQQ leftQ];
 
     Ji=jacobianRInv(rightQ,H,LX,LA,LB,LC,LD);
+
+    if isnan(Ji)
+        error("Right block position outside working space")
+    end
+
     dq =Ji*dr;
     rightQ=rightQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
     rightQQ=[rightQQ rightQ];
@@ -114,6 +132,10 @@ rightAAA = newAAA;
 leftQQ=[leftQQ(:,end) invkinL(-DTF,-LBL/2-50,H-LD, H, LX, LA,LB,LC,LD)];
 rightQQ=[rightQQ(:,end) -leftQQ(:,2)];
 
+if or(width(leftQQ)==1, width(rightQQ)==1)
+    error("Block joining position outside working space")
+end
+
 newAAA = zeros(4,4,height(leftDH),size(leftAAA,4)+50);
 newAAA(:,:,:,1:end-50) = leftAAA;
 newAAA(:,:,:,end-49:end) = ObtainRobotMotion(leftQQ, leftDH, N);
@@ -134,11 +156,21 @@ rightQQ=rightQQ(:,end);
 
 for n=1:N-1
     Ji=jacobianLInv(leftQ,H,LX,LA,LB,LC,LD);
+
+    if isnan(Ji)
+        error("Join blocks position outside working space")
+    end
+
     dq =Ji*dr;
     leftQ=leftQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
     leftQQ=[leftQQ leftQ];
 
     Ji=jacobianRInv(rightQ,H,LX,LA,LB,LC,LD);
+
+    if isnan(Ji)
+        error("Join blocks position outside working space")
+    end
+
     dq =Ji*-dr;
     rightQ=rightQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
     rightQQ=[rightQQ rightQ];
@@ -181,11 +213,21 @@ rightQ=rightQQ(:,end);
 rightQQ=rightQQ(:,end);
 for n=1:N-1
     Ji=jacobianLInv(leftQ,H,LX,LA,LB,LC,LD);
+
+    if isnan(Ji)
+        error("Put down blocks position outside working space")
+    end
+
     dq =Ji*dr;
     leftQ=leftQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
     leftQQ=[leftQQ leftQ];
 
     Ji=jacobianRInv(rightQ,H,LX,LA,LB,LC,LD);
+
+    if isnan(Ji)
+        error("Put down blocks position outside working space")
+    end
+
     dq =Ji*dr;
     rightQ=rightQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
     rightQQ=[rightQQ rightQ];
@@ -203,7 +245,7 @@ newAAA(:,:,:,1:end-50) = rightAAA;
 newAAA(:,:,:,end-49:end) = CalculateRobotMotion(MDH);
 rightAAA = newAAA;
 
-%% go down 50 units
+%% go up 50 units
 dr=([0;0;50;0;0;0])/N;
 
 leftQ=leftQQ(:,end);
@@ -212,11 +254,21 @@ rightQ=rightQQ(:,end);
 rightQQ=rightQQ(:,end);
 for n=1:N-1
     Ji=jacobianLInv(leftQ,H,LX,LA,LB,LC,LD);
+
+    if isnan(Ji)
+        error("Position 50 units above blocks to free them outside working space")
+    end
+
     dq =Ji*dr;
     leftQ=leftQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
     leftQQ=[leftQQ leftQ];
 
     Ji=jacobianRInv(rightQ,H,LX,LA,LB,LC,LD);
+
+    if isnan(Ji)
+        error("Position 50 units above blocks to free them outside working space")
+    end
+    
     dq =Ji*dr;
     rightQ=rightQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
     rightQQ=[rightQQ rightQ];
