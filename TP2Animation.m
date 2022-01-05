@@ -1,7 +1,12 @@
-function TP2Animation(plotPath)
+function TP2Animation(plotPath, iterations)
     if nargin==0
         plotPath=1;
     end
+
+    if nargin==1
+        iterations=2;
+    end
+
     [HTA, HTB, STF, LTF, DTF, DTT, LTT, WTS, HTC, LBL, WBL, HBL, H, LD, LC, LB, LA, LX, LZ] = ReadParameters("tp2.txt");
     
     axis equal; axis([-DTF*2-LTF DTT*2+LTT -max(WTS-STF, LA+LB+LC+LD*2) max(WTS-STF, LA+LB+LC+LD*2) 0 H*1.25]); hold on; view(3);
@@ -30,8 +35,8 @@ function TP2Animation(plotPath)
     plot3([xmin,xmin],[ymax,ymax],[zmin,zmax],'-r')
     fill3([xmin xmax xmax xmin], [ymin ymin ymax ymax], [zmax zmax zmax zmax], 'r');
     
-    leftBlock= Block(trans(-DTF-LTF+WBL/2, -STF/2-WTS/2, HTB+HBL), LBL, WBL, HBL, 'g');
-    rightBlock= Block(trans(-DTF-LTF+WBL/2, STF/2+WTS/2, HTA+HBL), LBL, WBL, HBL, 'g');
+    leftBlock= Block(trans(-DTF-LTF+WBL, -STF/2-WTS/2, HTB), LBL, WBL, HBL, 'g');
+    rightBlock= Block(trans(-DTF-LTF+WBL, STF/2+WTS/2, HTA), LBL, WBL, HBL, 'g');
     
     N=50;
     
@@ -69,11 +74,11 @@ function TP2Animation(plotPath)
     leftQQ = zeros(10,1);
     rightQQ = zeros(10,1);
     
-    for iter=1:1
+    for iter=1:iterations
     
         %% go to 50 units above pickup position
-        leftQQ=[leftQQ(:,end) invkinL(-DTF-WBL/2,-STF/2-WTS/2,HTB+HBL+50, H, LX, LA,LB,LC,LD)];
-        rightQQ=[rightQQ(:,end) invkinR(-DTF-WBL/2,STF/2+WTS/2,HTA+HBL+50, H, LX, LA,LB,LC,LD)];
+        leftQQ=[leftQQ(:,end) invkinL(-DTF-WBL,-STF/2-WTS/2,HTB+HBL+50, H, LX, LA,LB,LC,LD)];
+        rightQQ=[rightQQ(:,end) invkinR(-DTF-WBL,STF/2+WTS/2,HTA+HBL+50, H, LX, LA,LB,LC,LD)];
         
         if width(leftQQ)==1
             error("Left block pickup position outside working space")
@@ -114,8 +119,8 @@ function TP2Animation(plotPath)
         leftAAA = ObtainRobotMotion(leftQQ, leftDH, N, plotPath, leftAAA);
         rightAAA = ObtainRobotMotion(rightQQ, rightDH, N, plotPath, rightAAA);
         
-        %% put down blocks (DTF,LBL/2,H-LD)->(DTT+WBL/2,LBL/2,HTC+HBL)
-        dr = [DTT+WBL/2-DTF;0;HTC+HBL-H+LD;0;0;0];
+        %% put down blocks
+        dr = [DTT+WBL-DTF;0;HTC+HBL-H+LD;0;0;0];
         [leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, dr, "Put down blocks position outside working space", plotPath);
         [rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, dr, "Put down blocks position outside working space", plotPath);
         
@@ -123,6 +128,13 @@ function TP2Animation(plotPath)
         [leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;0;50;0;0;0], "Position 50 units above blocks to free them outside working space", plotPath);
         [rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, [0;0;50;0;0;0], "Position 50 units above blocks to free them outside working space", plotPath);
         
+        %% send away block and return robot to original position
+        leftQQ=[leftQQ(:,end) invkinL(-DTF-WBL/2, -STF/2-WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
+        rightQQ=[rightQQ(:,end) invkinR(-DTF-WBL/2, STF/2+WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
+        
+        leftAAA = ObtainRobotMotion(leftQQ, leftDH, N, plotPath, leftAAA);
+        rightAAA = ObtainRobotMotion(rightQQ, rightDH, N, plotPath, rightAAA);
+
         %% Animate
         for n=1:size(leftAAA,4)
             Org = LinkOrigins(leftAAA(:,:,:,n));
@@ -138,11 +150,15 @@ function TP2Animation(plotPath)
             leftGripper = leftGripper.update(T);
         
             if n <= 50
-                leftBlock = leftBlock.update(trans(-DTF-LTF+WBL/2+n/50*(LTF-WBL), -STF/2-WTS/2, HTB+HBL));
+                leftBlock = leftBlock.update(trans(-DTF-LTF+WBL+n/50*(LTF-2*WBL), -STF/2-WTS/2, HTB));
             end
         
             if and(n>100, n<=300)
-                leftBlock = leftBlock.update(T*rotx(pi));
+                leftBlock = leftBlock.update(T);
+            end
+
+            if n > 350
+                leftBlock = leftBlock.update(trans(DTT+WBL+(n-350)/50*(LTT-2*WBL), LBL/2, HTC));
             end
         
             Org = LinkOrigins(rightAAA(:,:,:,n));
@@ -158,38 +174,18 @@ function TP2Animation(plotPath)
             rightGripper = rightGripper.update(T);
         
             if n <= 50
-                rightBlock = rightBlock.update(trans(-DTF-LTF+WBL/2+n/50*(LTF-WBL), STF/2+WTS/2, HTA+HBL));
+                rightBlock = rightBlock.update(trans(-DTF-LTF+WBL+n/50*(LTF-2*WBL), STF/2+WTS/2, HTA));
             end
         
             if and(n>100, n<=300)
-                rightBlock = rightBlock.update(T*rotx(pi));
+                rightBlock = rightBlock.update(T);
+            end
+
+            if n > 350
+                rightBlock = rightBlock.update(trans(DTT+WBL+(n-350)/50*(LTT-2*WBL), -LBL/2, HTC));
             end
         
             pause(0.05);
         end
-        
-        %% send away block and return robot to original position
-        % leftQQ=[zeros(10,1) invkinL(-DTF-WBL/2, -STF/2-WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
-        % rightQQ=[zeros(10,1) invkinR(-DTF-WBL/2, STF/2+WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
-        % 
-        % leftAAA = ObtainRobotMotion(leftQQ, leftDH, NN);
-        % rightAAA = ObtainRobotMotion(rightQQ, rightDH, NN);
-        % 
-        % for i=1:50
-        %     Org = LinkOrigins(leftAAA(:,:,:,i));
-        %     leftH.XData=Org(1,:);
-        %     leftH.YData=Org(2,:);
-        %     leftH.ZData=Org(3,:);
-        % 
-        %     Org = LinkOrigins(rightAAA(:,:,:,i));
-        %     rightH.XData=Org(1,:);
-        %     rightH.YData=Org(2,:);
-        %     rightH.ZData=Org(3,:);
-        % 
-        %     leftBlock = leftBlock.update(trans(DTT+WBL/2+i/50*(LTT-WBL), LBL/2, HTC+HBL));
-        %     rightBlock = rightBlock.update(trans(DTT+WBL/2+i/50*(LTT-WBL), -LBL/2, HTC+HBL));
-        %     pause(0.05);
-        % end
     end
 end
-

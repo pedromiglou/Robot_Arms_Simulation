@@ -2,9 +2,6 @@ classdef Block
     % Class to represent a Block in the animation
     
     properties
-        LBL
-        WBL
-        HBL
         initialVertices
         h
     end
@@ -12,14 +9,10 @@ classdef Block
     methods  
         function obj = Block(T, LBL, WBL, HBL, color)
             % Construct an instance of a Block
-            obj.LBL = LBL;
-            obj.WBL = WBL;
-            obj.HBL = HBL;
-
             obj.initialVertices = [
-                -obj.WBL/2 obj.WBL/2 obj.WBL/2 -obj.WBL/2 -obj.WBL/2 -obj.WBL/2 obj.WBL/2 obj.WBL/2;
-                -obj.LBL/2 -obj.LBL/2 obj.LBL/2 obj.LBL/2 obj.LBL/2 -obj.LBL/2 -obj.LBL/2 obj.LBL/2;
-                -obj.HBL -obj.HBL -obj.HBL -obj.HBL 0 0 0 0
+                -WBL/2 WBL/2 WBL/2 -WBL/2 -WBL/2 -WBL/2 WBL/2 WBL/2;
+                -LBL/2 -LBL/2 LBL/2 LBL/2 LBL/2 -LBL/2 -LBL/2 LBL/2;
+                0 0 0 0 HBL HBL HBL HBL
                 1 1 1 1 1 1 1 1
                 ];
 
@@ -34,6 +27,11 @@ classdef Block
             % update Block graphic representation
             vertices = T*obj.initialVertices;
             obj.h.Vertices = vertices(1:3,:)';
+        end
+
+        function obj = disappear(obj)
+            %make Block disappear
+            obj.h.FaceAlpha=0;
         end
     end
 end
