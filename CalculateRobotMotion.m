@@ -1,4 +1,4 @@
-function AAA = CalculateRobotMotion(MDH)
+function AAA = CalculateRobotMotion(MDH, plotPath)
 % AAA - superhipermatriz com as transformações geom. todas
 % MDH - Matrizes de DH para as diversas configurações
 
@@ -8,13 +8,14 @@ function AAA = CalculateRobotMotion(MDH)
         AAA(:,:,:,n) = Tlinks(MDH(:,:,n));
     end
 
-    for i=1:50
-        T = eye(4);
-        for j = 1:size(AAA,3)
-            T = T*AAA(:,:,j,i);
+    if plotPath
+        for i=1:50
+            T = eye(4);
+            for j = 1:size(AAA,3)
+                T = T*AAA(:,:,j,i);
+            end
+    
+            plot3(T(1,4), T(2,4), T(3,4), '.g');
         end
-
-        plot3(T(1,4), T(2,4), T(3,4), '.g');
     end
 end
-

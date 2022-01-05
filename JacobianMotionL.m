@@ -1,4 +1,4 @@
-function [AAA, QQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, DH, QQ, AAA, dr, msg)
+function [AAA, QQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, DH, QQ, AAA, dr, msg, plotPath)
     dr = dr/N;
     Q=QQ(:,end);
     QQ=QQ(:,end);
@@ -18,6 +18,6 @@ function [AAA, QQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, DH, QQ, AAA, dr, 
     MDH=GenerateMultiDH(DH, QQ, zeros(height(DH), 1));
     newAAA = zeros(4,4,height(DH),size(AAA,4)+50);
     newAAA(:,:,:,1:end-50) = AAA;
-    newAAA(:,:,:,end-49:end) = CalculateRobotMotion(MDH);
+    newAAA(:,:,:,end-49:end) = CalculateRobotMotion(MDH, plotPath);
     AAA = newAAA;
 end
