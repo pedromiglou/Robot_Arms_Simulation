@@ -15,4 +15,3 @@ function MDH = GenerateMultiDH(DH,MQ,t)
         MDH(:,:,n) = [DH(:,1)+~t.*MQ(:,n)  DH(:,2) DH(:, 3)+t.*MQ(:,n) DH(:, 4)];
     end
 end
-

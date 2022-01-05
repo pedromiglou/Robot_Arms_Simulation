@@ -28,10 +28,5 @@ classdef Block
             vertices = T*obj.initialVertices;
             obj.h.Vertices = vertices(1:3,:)';
         end
-
-        function obj = disappear(obj)
-            %make Block disappear
-            obj.h.FaceAlpha=0;
-        end
     end
 end

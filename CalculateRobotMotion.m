@@ -1,6 +1,7 @@
 function AAA = CalculateRobotMotion(MDH, plotPath)
-% AAA - superhipermatriz com as transformações geom. todas
-% MDH - Matrizes de DH para as diversas configurações
+    % AAA - superhipermatriz com as transformações geom. todas
+    % MDH - Matrizes de DH para as diversas configurações
+    % plotPath - 0 ou 1 consoante deve desenhar o caminho
 
     AAA = zeros(4,4,size(MDH, 1),size(MDH,3));
     

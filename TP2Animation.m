@@ -75,8 +75,7 @@ function TP2Animation(plotPath, iterations)
     rightQQ = zeros(10,1);
     
     for iter=1:iterations
-    
-        %% go to 50 units above pickup position
+        % go to 50 units above pickup position
         leftQQ=[leftQQ(:,end) invkinL(-DTF-WBL,-STF/2-WTS/2,HTB+HBL+50, H, LX, LA,LB,LC,LD)];
         rightQQ=[rightQQ(:,end) invkinR(-DTF-WBL,STF/2+WTS/2,HTA+HBL+50, H, LX, LA,LB,LC,LD)];
         
@@ -91,11 +90,11 @@ function TP2Animation(plotPath, iterations)
         leftAAA = ObtainRobotMotion(leftQQ, leftDH, N, plotPath);
         rightAAA = ObtainRobotMotion(rightQQ, rightDH, N, plotPath);
         
-        %% go down 50 units
+        % go down 50 units
         [leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;0;-50;0;0;0], "Left block position outside working space", plotPath);
         [rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, [0;0;-50;0;0;0], "Right block position outside working space", plotPath);
         
-        %% motion to 50 units away from joining position
+        % motion to 50 units away from joining position
         leftQQ=[leftQQ(:,end) invkinL(-DTF,-LBL/2-50,H-LD, H, LX, LA,LB,LC,LD)];
         rightQQ=[rightQQ(:,end) -leftQQ(:,2)];
         
@@ -106,11 +105,11 @@ function TP2Animation(plotPath, iterations)
         leftAAA = ObtainRobotMotion(leftQQ, leftDH, N, plotPath, leftAAA);
         rightAAA = ObtainRobotMotion(rightQQ, rightDH, N, plotPath, rightAAA);
         
-        %% 50 units movement to join
+        % 50 units movement to join
         [leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;50;0;0;0;0], "Join blocks position outside working space", plotPath);
         [rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, [0;-50;0;0;0;0], "Join blocks position outside working space", plotPath);
         
-        %% rotate robot
+        % rotate robot
         leftQQ=[leftQQ(:,end) leftQQ(:,end)];
         leftQQ(1,:) = [0 pi];
         rightQQ=[rightQQ(:,end) rightQQ(:,end)];
@@ -119,23 +118,23 @@ function TP2Animation(plotPath, iterations)
         leftAAA = ObtainRobotMotion(leftQQ, leftDH, N, plotPath, leftAAA);
         rightAAA = ObtainRobotMotion(rightQQ, rightDH, N, plotPath, rightAAA);
         
-        %% put down blocks
+        % put down blocks
         dr = [DTT+WBL-DTF;0;HTC+HBL-H+LD;0;0;0];
         [leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, dr, "Put down blocks position outside working space", plotPath);
         [rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, dr, "Put down blocks position outside working space", plotPath);
         
-        %% go up 50 units
+        % go up 50 units
         [leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;0;50;0;0;0], "Position 50 units above blocks to free them outside working space", plotPath);
         [rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, [0;0;50;0;0;0], "Position 50 units above blocks to free them outside working space", plotPath);
         
-        %% send away block and return robot to original position
+        % send away block and return robot to original position
         leftQQ=[leftQQ(:,end) invkinL(-DTF-WBL/2, -STF/2-WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
         rightQQ=[rightQQ(:,end) invkinR(-DTF-WBL/2, STF/2+WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
         
         leftAAA = ObtainRobotMotion(leftQQ, leftDH, N, plotPath, leftAAA);
         rightAAA = ObtainRobotMotion(rightQQ, rightDH, N, plotPath, rightAAA);
 
-        %% Animate
+        % Animate
         for n=1:size(leftAAA,4)
             Org = LinkOrigins(leftAAA(:,:,:,n));
             leftH.XData=Org(1,:);

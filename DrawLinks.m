@@ -6,4 +6,3 @@ function h = DrawLinks(Org)
     h.MarkerSize=6;
     h.LineWidth = 4;
 end
-

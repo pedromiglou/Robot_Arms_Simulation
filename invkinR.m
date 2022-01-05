@@ -12,19 +12,23 @@ function Q = invkinR(x, y, z, H, LX, LA, LB, LC, LD)
 
     ortogonalLimit = pi*135/180;
 
-    %% theta5
+    Q=[];
+
+    % theta5
     q5=acos(((pwx+LX)^2+(pwy-LA)^2+(pwz-H)^2-LB^2-LC^2)/(2*LB*LC));
 
     % if solutions are not real make it an empty array
     if ~isreal(q5)
         q5=[];
+        return
     elseif abs(q5)>ortogonalLimit
         q5=[];
+        return
     else
         q5=[q5 -q5];
     end
 
-    %% theta3
+    % theta3
     aux=LB^2+LC^2+2*LB*LC*cos(q5)-(pwy-LA)^2;
 
     % check if aux is not negative because sqrt(aux) will be needed 
@@ -49,13 +53,17 @@ function Q = invkinR(x, y, z, H, LX, LA, LB, LC, LD)
                 q5 = [q5 q5i(i)];
             end
         end
+
+        if isempty(q3)
+            return
+        end
     end
 
-    %% theta2
+    % theta2
     aux = LB*sin(q3)+LC*sin(q5).*cos(q3)+LC*cos(q5).*sin(q3);
     q2 = atan2((pwz-H)*sign(aux), (-pwx-LX)*sign(aux));
 
-    %% theta6, theta7, theta8
+    % theta6, theta7, theta8
     allDH = zeros(4,4,length(q5));
     for i=1:length(q5)
         DH = [ pi/2 0 H -pi/2
@@ -93,17 +101,25 @@ function Q = invkinR(x, y, z, H, LX, LA, LB, LC, LD)
     q3=[q3 q3];
     q5=[q5 q5];
 
-    Q=[zeros(1,length(q5));zeros(1,length(q5));q2;q3;zeros(1,length(q5));q5;zeros(1,length(q5));q6;q7;q8];
+    Qi=[zeros(1,length(q5));zeros(1,length(q5));q2;q3;zeros(1,length(q5));q5;zeros(1,length(q5));q6;q7;q8];
 
-    if ~isempty(Q)
-        % choose the option with smallest sum
-        RowSum = sum(abs(Q),1);
-        [~,n] = min(RowSum);
-        Q = Q(:,n);
-
-        if turned
-            Q(1)=pi;
+    Q = [];
+    for i=1:width(Qi)
+        if abs(q7(i)) < ortogonalLimit
+            Q = [Q Qi(:,i)];
         end
     end
-end
 
+    if isempty(Q)
+        return
+    end
+
+    % choose the option with smallest sum
+    RowSum = sum(abs(Q),1);
+    [~,n] = min(RowSum);
+    Q = Q(:,n);
+
+    if turned
+        Q(1)=pi;
+    end
+end

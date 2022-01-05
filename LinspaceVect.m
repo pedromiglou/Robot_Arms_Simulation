@@ -5,4 +5,3 @@ function MQ = LinspaceVect(Qi, Qf, N)
         MQ(n,:) = linspace(Qi(n), Qf(n), N);
     end
 end
-
