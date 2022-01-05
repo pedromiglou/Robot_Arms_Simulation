@@ -1,4 +1,4 @@
-function AAA = ObtainRobotMotion(QQ, DH, NN)
+function AAA = ObtainRobotMotion(QQ, DH, NN, AAA)
     jTypes = zeros(height(DH), 1);
     
     Qi=QQ(:, 1);
@@ -6,6 +6,13 @@ function AAA = ObtainRobotMotion(QQ, DH, NN)
     MQ= LinspaceVect(Qi, Qf, NN);
     
     MDH=GenerateMultiDH(DH, MQ, jTypes);
-    AAA = CalculateRobotMotion(MDH);
-end
 
+    if nargin==3
+        AAA = CalculateRobotMotion(MDH);
+    else
+        newAAA = zeros(4,4,height(DH),size(AAA,4)+NN);
+        newAAA(:,:,:,1:end-NN) = AAA;
+        newAAA(:,:,:,end-NN+1:end) = CalculateRobotMotion(MDH);
+        AAA = newAAA;
+    end
+end

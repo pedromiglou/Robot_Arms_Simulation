@@ -88,45 +88,8 @@ leftAAA = ObtainRobotMotion(leftQQ, leftDH, N);
 rightAAA = ObtainRobotMotion(rightQQ, rightDH, N);
 
 %% go down 50 units
-dr=([0;0;-50;0;0;0])/N;
-
-leftQ=leftQQ(:,end);
-leftQQ=leftQQ(:,end);
-rightQ=rightQQ(:,end);
-rightQQ=rightQQ(:,end);
-for n=1:N-1
-    Ji=jacobianLInv(leftQ,H,LX,LA,LB,LC,LD);
-
-    if isnan(Ji)
-        error("Left block position outside working space")
-    end
-
-    dq =Ji*dr;
-    leftQ=leftQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
-    leftQQ=[leftQQ leftQ];
-
-    Ji=jacobianRInv(rightQ,H,LX,LA,LB,LC,LD);
-
-    if isnan(Ji)
-        error("Right block position outside working space")
-    end
-
-    dq =Ji*dr;
-    rightQ=rightQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
-    rightQQ=[rightQQ rightQ];
-end
-
-MDH=GenerateMultiDH(leftDH, leftQQ, zeros(height(leftDH), 1));
-newAAA = zeros(4,4,height(leftDH),size(leftAAA,4)+50);
-newAAA(:,:,:,1:end-50) = leftAAA;
-newAAA(:,:,:,end-49:end) = CalculateRobotMotion(MDH);
-leftAAA = newAAA;
-
-MDH=GenerateMultiDH(rightDH, rightQQ, zeros(height(rightDH), 1));
-newAAA = zeros(4,4,height(rightDH),size(rightAAA,4)+50);
-newAAA(:,:,:,1:end-50) = rightAAA;
-newAAA(:,:,:,end-49:end) = CalculateRobotMotion(MDH);
-rightAAA = newAAA;
+[leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;0;-50;0;0;0], "Left block position outside working space");
+[rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, [0;0;-50;0;0;0], "Right block position outside working space");
 
 %% motion to 50 units away from joining position
 leftQQ=[leftQQ(:,end) invkinL(-DTF,-LBL/2-50,H-LD, H, LX, LA,LB,LC,LD)];
@@ -136,57 +99,12 @@ if or(width(leftQQ)==1, width(rightQQ)==1)
     error("Block joining position outside working space")
 end
 
-newAAA = zeros(4,4,height(leftDH),size(leftAAA,4)+50);
-newAAA(:,:,:,1:end-50) = leftAAA;
-newAAA(:,:,:,end-49:end) = ObtainRobotMotion(leftQQ, leftDH, N);
-leftAAA = newAAA;
-
-newAAA = zeros(4,4,height(rightDH),size(rightAAA,4)+50);
-newAAA(:,:,:,1:end-50) = rightAAA;
-newAAA(:,:,:,end-49:end) = ObtainRobotMotion(rightQQ, rightDH, N);
-rightAAA = newAAA;
+leftAAA = ObtainRobotMotion(leftQQ, leftDH, N, leftAAA);
+rightAAA = ObtainRobotMotion(rightQQ, rightDH, N, rightAAA);
 
 %% 50 units movement to join
-dr=([0;50;0;0;0;0])/N;
-
-leftQ=leftQQ(:,end);
-leftQQ=leftQQ(:,end);
-rightQ=rightQQ(:,end);
-rightQQ=rightQQ(:,end);
-
-for n=1:N-1
-    Ji=jacobianLInv(leftQ,H,LX,LA,LB,LC,LD);
-
-    if isnan(Ji)
-        error("Join blocks position outside working space")
-    end
-
-    dq =Ji*dr;
-    leftQ=leftQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
-    leftQQ=[leftQQ leftQ];
-
-    Ji=jacobianRInv(rightQ,H,LX,LA,LB,LC,LD);
-
-    if isnan(Ji)
-        error("Join blocks position outside working space")
-    end
-
-    dq =Ji*-dr;
-    rightQ=rightQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
-    rightQQ=[rightQQ rightQ];
-end
-
-MDH=GenerateMultiDH(leftDH, leftQQ, zeros(height(leftDH), 1));
-newAAA = zeros(4,4,height(leftDH),size(leftAAA,4)+50);
-newAAA(:,:,:,1:end-50) = leftAAA;
-newAAA(:,:,:,end-49:end) =  CalculateRobotMotion(MDH);
-leftAAA = newAAA;
-
-MDH=GenerateMultiDH(rightDH, rightQQ, zeros(height(rightDH), 1));
-newAAA = zeros(4,4,height(rightDH),size(rightAAA,4)+50);
-newAAA(:,:,:,1:end-50) = rightAAA;
-newAAA(:,:,:,end-49:end) = CalculateRobotMotion(MDH);
-rightAAA = newAAA;
+[leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;50;0;0;0;0], "Join blocks position outside working space");
+[rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, [0;-50;0;0;0;0], "Join blocks position outside working space");
 
 %% rotate robot
 leftQQ=[leftQQ(:,end) leftQQ(:,end)];
@@ -194,97 +112,17 @@ leftQQ(1,:) = [0 pi];
 rightQQ=[rightQQ(:,end) rightQQ(:,end)];
 rightQQ(1,:) = [0 pi];
 
-newAAA = zeros(4,4,height(leftDH),size(leftAAA,4)+50);
-newAAA(:,:,:,1:end-50) = leftAAA;
-newAAA(:,:,:,end-49:end) = ObtainRobotMotion(leftQQ, leftDH, N);
-leftAAA = newAAA;
-
-newAAA = zeros(4,4,height(rightDH),size(rightAAA,4)+50);
-newAAA(:,:,:,1:end-50) = rightAAA;
-newAAA(:,:,:,end-49:end) = ObtainRobotMotion(rightQQ, rightDH, N);
-rightAAA = newAAA;
+leftAAA = ObtainRobotMotion(leftQQ, leftDH, N, leftAAA);
+rightAAA = ObtainRobotMotion(rightQQ, rightDH, N, rightAAA);
 
 %% put down blocks (DTF,LBL/2,H-LD)->(DTT+WBL/2,LBL/2,HTC+HBL)
-dr=([DTT+WBL/2-DTF;0;HTC+HBL-H+LD;0;0;0])/N;
-
-leftQ=leftQQ(:,end);
-leftQQ=leftQQ(:,end);
-rightQ=rightQQ(:,end);
-rightQQ=rightQQ(:,end);
-for n=1:N-1
-    Ji=jacobianLInv(leftQ,H,LX,LA,LB,LC,LD);
-
-    if isnan(Ji)
-        error("Put down blocks position outside working space")
-    end
-
-    dq =Ji*dr;
-    leftQ=leftQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
-    leftQQ=[leftQQ leftQ];
-
-    Ji=jacobianRInv(rightQ,H,LX,LA,LB,LC,LD);
-
-    if isnan(Ji)
-        error("Put down blocks position outside working space")
-    end
-
-    dq =Ji*dr;
-    rightQ=rightQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
-    rightQQ=[rightQQ rightQ];
-end
-
-MDH=GenerateMultiDH(leftDH, leftQQ, zeros(height(leftDH), 1));
-newAAA = zeros(4,4,height(leftDH),size(leftAAA,4)+50);
-newAAA(:,:,:,1:end-50) = leftAAA;
-newAAA(:,:,:,end-49:end) = CalculateRobotMotion(MDH);
-leftAAA = newAAA;
-
-MDH=GenerateMultiDH(rightDH, rightQQ, zeros(height(rightDH), 1));
-newAAA = zeros(4,4,height(rightDH),size(rightAAA,4)+50);
-newAAA(:,:,:,1:end-50) = rightAAA;
-newAAA(:,:,:,end-49:end) = CalculateRobotMotion(MDH);
-rightAAA = newAAA;
+dr = [DTT+WBL/2-DTF;0;HTC+HBL-H+LD;0;0;0];
+[leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, dr, "Put down blocks position outside working space");
+[rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, dr, "Put down blocks position outside working space");
 
 %% go up 50 units
-dr=([0;0;50;0;0;0])/N;
-
-leftQ=leftQQ(:,end);
-leftQQ=leftQQ(:,end);
-rightQ=rightQQ(:,end);
-rightQQ=rightQQ(:,end);
-for n=1:N-1
-    Ji=jacobianLInv(leftQ,H,LX,LA,LB,LC,LD);
-
-    if isnan(Ji)
-        error("Position 50 units above blocks to free them outside working space")
-    end
-
-    dq =Ji*dr;
-    leftQ=leftQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
-    leftQQ=[leftQQ leftQ];
-
-    Ji=jacobianRInv(rightQ,H,LX,LA,LB,LC,LD);
-
-    if isnan(Ji)
-        error("Position 50 units above blocks to free them outside working space")
-    end
-    
-    dq =Ji*dr;
-    rightQ=rightQ+[0 0 dq(1) dq(2) 0 dq(3) 0 dq(4) dq(5) dq(6) ]';
-    rightQQ=[rightQQ rightQ];
-end
-
-MDH=GenerateMultiDH(leftDH, leftQQ, zeros(height(leftDH), 1));
-newAAA = zeros(4,4,height(leftDH),size(leftAAA,4)+50);
-newAAA(:,:,:,1:end-50) = leftAAA;
-newAAA(:,:,:,end-49:end) = CalculateRobotMotion(MDH);
-leftAAA = newAAA;
-
-MDH=GenerateMultiDH(rightDH, rightQQ, zeros(height(rightDH), 1));
-newAAA = zeros(4,4,height(rightDH),size(rightAAA,4)+50);
-newAAA(:,:,:,1:end-50) = rightAAA;
-newAAA(:,:,:,end-49:end) = CalculateRobotMotion(MDH);
-rightAAA = newAAA;
+[leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;0;50;0;0;0], "Position 50 units above blocks to free them outside working space");
+[rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, [0;0;50;0;0;0], "Position 50 units above blocks to free them outside working space");
 
 %% Animate
 for n=1:size(leftAAA,4)
