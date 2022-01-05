@@ -1,4 +1,8 @@
-function Q = invkinL(x, y, z, H, LX, LA, LB, LC, LD)
+function Q = invkinL(x, y, z, H, LX, LA, LB, LC, LD, angle)
+    if nargin == 9
+        angle=0;
+    end
+
     turned = 0;
     if x>0
         turned=1;
@@ -79,20 +83,11 @@ function Q = invkinL(x, y, z, H, LX, LA, LB, LC, LD)
         allDH(:,:,i) = res(:,:,1) * res(:,:,2) * res(:,:,3) * res(:,:,4) * res(:,:,5) * res(:,:,6) * res(:,:,7);
     end
     
-    p = zeros(4,4,2);
-    p(:,:,1) = trans(x,y,z)*rotx(pi);
-    p(:,:,2) = trans(x,y,z)*rotz(pi)*rotx(pi);
-
-    res = zeros(2*length(q5),4,4);
-
-    for i=1:2
-        for j=1:length(q5)
-            res((i-1)*length(q5)+j,:,:) = inv(allDH(:,:,j))*p(:,:,i);
-        end
+    p = trans(x,y,z)*rotz(angle)*rotx(pi);
+    res = zeros(length(q5),4,4);
+    for j=1:length(q5)
+        res(j,:,:) = inv(allDH(:,:,j))*p;
     end
-    q2=[q2 q2];
-    q3=[q3 q3];
-    q5=[q5 q5];
 
     q7 = [atan2(sqrt(res(:,1,3)'.^2 + res(:,2,3)'.^2), res(:,3,3)') atan2(- sqrt(res(:,1,3)'.^2 + res(:,2,3)'.^2), res(:,3,3)')];
     q6 = [atan2(res(:,2,3)',res(:,1,3)') atan2(-res(:,2,3)',-res(:,1,3)')];

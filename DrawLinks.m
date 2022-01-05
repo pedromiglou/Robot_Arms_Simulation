@@ -1,8 +1,8 @@
 function h = DrawLinks(Org)
     h = line(Org(1,:), Org(2,:), Org(3,:));
 
-    h.Color = 'b';
+    h.Color = [0.7 0.7 0.9];
     h.Marker = 'o';
-    h.MarkerSize=6;
-    h.LineWidth = 4;
+    h.MarkerSize=4;
+    h.LineWidth = 2;
 end

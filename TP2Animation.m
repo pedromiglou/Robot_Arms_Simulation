@@ -15,28 +15,28 @@ function TP2Animation(plotPath, iterations)
     xlabel("X"); ylabel("Y"); zlabel("Z");
     
     xmin=-DTF-LTF; xmax=-DTF; ymin=-WTS-STF/2; ymax=-STF/2; zmin=0; zmax=HTB;
-    plot3([xmin,xmin],[ymin,ymin],[zmin,zmax],'-r')
-    plot3([xmax,xmax],[ymin,ymin],[zmin,zmax],'-r')
-    plot3([xmax,xmax],[ymax,ymax],[zmin,zmax],'-r')
-    plot3([xmin,xmin],[ymax,ymax],[zmin,zmax],'-r')
-    fill3([xmin xmax xmax xmin], [ymin ymin ymax ymax], [zmax zmax zmax zmax], 'r');
+    plot3([xmin,xmin],[ymin,ymin],[zmin,zmax],'-k')
+    plot3([xmax,xmax],[ymin,ymin],[zmin,zmax],'-k')
+    plot3([xmax,xmax],[ymax,ymax],[zmin,zmax],'-k')
+    plot3([xmin,xmin],[ymax,ymax],[zmin,zmax],'-k')
+    fill3([xmin xmax xmax xmin], [ymin ymin ymax ymax], [zmax zmax zmax zmax], [0 0.7 0]);
     
     xmin=-DTF-LTF; xmax=-DTF; ymin=STF/2; ymax=STF/2+WTS; zmin=0; zmax=HTA;
-    plot3([xmin,xmin],[ymin,ymin],[zmin,zmax],'-r')
-    plot3([xmax,xmax],[ymin,ymin],[zmin,zmax],'-r')
-    plot3([xmax,xmax],[ymax,ymax],[zmin,zmax],'-r')
-    plot3([xmin,xmin],[ymax,ymax],[zmin,zmax],'-r')
-    fill3([xmin xmax xmax xmin], [ymin ymin ymax ymax], [zmax zmax zmax zmax], 'r');
+    plot3([xmin,xmin],[ymin,ymin],[zmin,zmax],'-k')
+    plot3([xmax,xmax],[ymin,ymin],[zmin,zmax],'-k')
+    plot3([xmax,xmax],[ymax,ymax],[zmin,zmax],'-k')
+    plot3([xmin,xmin],[ymax,ymax],[zmin,zmax],'-k')
+    fill3([xmin xmax xmax xmin], [ymin ymin ymax ymax], [zmax zmax zmax zmax], [0 0.7 0]);
     
     xmin=DTT; xmax=DTT+LTT; ymin=-WTS/2; ymax=WTS/2; zmin=0; zmax=HTC;
-    plot3([xmin,xmin],[ymin,ymin],[zmin,zmax],'-r')
-    plot3([xmax,xmax],[ymin,ymin],[zmin,zmax],'-r')
-    plot3([xmax,xmax],[ymax,ymax],[zmin,zmax],'-r')
-    plot3([xmin,xmin],[ymax,ymax],[zmin,zmax],'-r')
-    fill3([xmin xmax xmax xmin], [ymin ymin ymax ymax], [zmax zmax zmax zmax], 'r');
+    plot3([xmin,xmin],[ymin,ymin],[zmin,zmax],'-k')
+    plot3([xmax,xmax],[ymin,ymin],[zmin,zmax],'-k')
+    plot3([xmax,xmax],[ymax,ymax],[zmin,zmax],'-k')
+    plot3([xmin,xmin],[ymax,ymax],[zmin,zmax],'-k')
+    fill3([xmin xmax xmax xmin], [ymin ymin ymax ymax], [zmax zmax zmax zmax], [0 0.7 0]);
     
-    leftBlock= Block(trans(-DTF-LTF+WBL, -STF/2-WTS/2, HTB), LBL, WBL, HBL, 'g');
-    rightBlock= Block(trans(-DTF-LTF+WBL, STF/2+WTS/2, HTA), LBL, WBL, HBL, 'g');
+    leftBlock= Block(trans(-DTF-LTF+WBL, -STF/2-WTS/2, HTB), LBL, WBL, HBL, 'b');
+    rightBlock= Block(trans(-DTF-LTF+WBL, STF/2+WTS/2, HTA), LBL, WBL, HBL, 'r');
     
     N=50;
     
@@ -68,16 +68,19 @@ function TP2Animation(plotPath, iterations)
     
     %draw robot and grippers
     [leftH, rightH] = InitRobot(leftDH, rightDH);
-    leftGripper = Gripper(trans(-LX, -LA-LB-LC-LD, H)*rotx(-pi/2), LBL/3, WBL*1.05, min(50, HBL)-5, 'b');
-    rightGripper = Gripper(trans(-LX, LA+LB+LC+LD, H)*rotx(pi/2), LBL/3, WBL*1.05, min(50, HBL)-5, 'b');
+    leftGripper = Gripper(trans(-LX, -LA-LB-LC-LD, H)*rotx(-pi/2), LBL/3, WBL*1.05, min(50, HBL)-5, [0.7 0.7 0.9]);
+    rightGripper = Gripper(trans(-LX, LA+LB+LC+LD, H)*rotx(pi/2), LBL/3, WBL*1.05, min(50, HBL)-5, [0.7 0.7 0.9]);
     
     leftQQ = zeros(10,1);
     rightQQ = zeros(10,1);
     
     for iter=1:iterations
+        lb_pos = [-DTF-LTF+LBL/2, -STF/2-LBL/2-rand()*(WTS-LBL), HTB, (rand()-0.5)*2*pi];
+        rb_pos = [-DTF-LTF+LBL/2, STF/2+LBL/2+rand()*(WTS-LBL), HTA, (rand()-0.5)*2*pi];
+
         % go to 50 units above pickup position
-        leftQQ=[leftQQ(:,end) invkinL(-DTF-WBL,-STF/2-WTS/2,HTB+HBL+50, H, LX, LA,LB,LC,LD)];
-        rightQQ=[rightQQ(:,end) invkinR(-DTF-WBL,STF/2+WTS/2,HTA+HBL+50, H, LX, LA,LB,LC,LD)];
+        leftQQ=[leftQQ(:,end) invkinL(lb_pos(1)+LTF-LBL,lb_pos(2),lb_pos(3)+HBL+50, H, LX, LA,LB,LC,LD, lb_pos(4))];
+        rightQQ=[rightQQ(:,end) invkinR(rb_pos(1)+LTF-LBL,rb_pos(2),rb_pos(3)+HBL+50, H, LX, LA,LB,LC,LD, rb_pos(4))];
         
         if width(leftQQ)==1
             error("Left block pickup position outside working space")
@@ -87,27 +90,27 @@ function TP2Animation(plotPath, iterations)
             error("Right block pickup position outside working space")
         end
         
-        leftAAA = ObtainRobotMotion(leftQQ, leftDH, N, plotPath);
-        rightAAA = ObtainRobotMotion(rightQQ, rightDH, N, plotPath);
+        leftAAA = RobotMotion('l', leftQQ, leftDH, N, plotPath);
+        rightAAA = RobotMotion('r', rightQQ, rightDH, N, plotPath);
         
         % go down 50 units
-        [leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;0;-50;0;0;0], "Left block position outside working space", plotPath);
-        [rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, [0;0;-50;0;0;0], "Right block position outside working space", plotPath);
+        [leftAAA, leftQQ] = JacobianMotion('l', H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;0;-50;0;0;0], "Left block position outside working space", plotPath);
+        [rightAAA, rightQQ] = JacobianMotion('r', H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, [0;0;-50;0;0;0], "Right block position outside working space", plotPath);
         
         % motion to 50 units away from joining position
-        leftQQ=[leftQQ(:,end) invkinL(-DTF,-LBL/2-50,H-LD, H, LX, LA,LB,LC,LD)];
+        leftQQ=[leftQQ(:,end) invkinL(-DTT,-LBL/2-50,H-LD, H, LX, LA,LB,LC,LD)];
         rightQQ=[rightQQ(:,end) -leftQQ(:,2)];
         
         if or(width(leftQQ)==1, width(rightQQ)==1)
             error("Block joining position outside working space")
         end
         
-        leftAAA = ObtainRobotMotion(leftQQ, leftDH, N, plotPath, leftAAA);
-        rightAAA = ObtainRobotMotion(rightQQ, rightDH, N, plotPath, rightAAA);
+        leftAAA = RobotMotion('l', leftQQ, leftDH, N, plotPath, leftAAA);
+        rightAAA = RobotMotion('r', rightQQ, rightDH, N, plotPath, rightAAA);
         
         % 50 units movement to join
-        [leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;50;0;0;0;0], "Join blocks position outside working space", plotPath);
-        [rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, [0;-50;0;0;0;0], "Join blocks position outside working space", plotPath);
+        [leftAAA, leftQQ] = JacobianMotion('l', H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;50;0;0;0;0], "Join blocks position outside working space", plotPath);
+        [rightAAA, rightQQ] = JacobianMotion('r', H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, [0;-50;0;0;0;0], "Join blocks position outside working space", plotPath);
         
         % rotate robot
         leftQQ=[leftQQ(:,end) leftQQ(:,end)];
@@ -115,24 +118,24 @@ function TP2Animation(plotPath, iterations)
         rightQQ=[rightQQ(:,end) rightQQ(:,end)];
         rightQQ(1,:) = [0 pi];
         
-        leftAAA = ObtainRobotMotion(leftQQ, leftDH, N, plotPath, leftAAA);
-        rightAAA = ObtainRobotMotion(rightQQ, rightDH, N, plotPath, rightAAA);
+        leftAAA = RobotMotion('l', leftQQ, leftDH, N, plotPath, leftAAA);
+        rightAAA = RobotMotion('r', rightQQ, rightDH, N, plotPath, rightAAA);
         
         % put down blocks
-        dr = [DTT+WBL-DTF;0;HTC+HBL-H+LD;0;0;0];
-        [leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, dr, "Put down blocks position outside working space", plotPath);
-        [rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, dr, "Put down blocks position outside working space", plotPath);
+        dr = [WBL;0;HTC+HBL-H+LD;0;0;0];
+        [leftAAA, leftQQ] = JacobianMotion('l', H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, dr, "Put down blocks position outside working space", plotPath);
+        [rightAAA, rightQQ] = JacobianMotion('r', H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, dr, "Put down blocks position outside working space", plotPath);
         
         % go up 50 units
-        [leftAAA, leftQQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;0;50;0;0;0], "Position 50 units above blocks to free them outside working space", plotPath);
-        [rightAAA, rightQQ] = JacobianMotionR(H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, [0;0;50;0;0;0], "Position 50 units above blocks to free them outside working space", plotPath);
+        [leftAAA, leftQQ] = JacobianMotion('l', H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;0;50;0;0;0], "Position 50 units above blocks to free them outside working space", plotPath);
+        [rightAAA, rightQQ] = JacobianMotion('r', H, LX, LA, LB, LC, LD, N, rightDH, rightQQ, rightAAA, [0;0;50;0;0;0], "Position 50 units above blocks to free them outside working space", plotPath);
         
         % send away block and return robot to original position
         leftQQ=[leftQQ(:,end) invkinL(-DTF-WBL/2, -STF/2-WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
         rightQQ=[rightQQ(:,end) invkinR(-DTF-WBL/2, STF/2+WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
         
-        leftAAA = ObtainRobotMotion(leftQQ, leftDH, N, plotPath, leftAAA);
-        rightAAA = ObtainRobotMotion(rightQQ, rightDH, N, plotPath, rightAAA);
+        leftAAA = RobotMotion('l', leftQQ, leftDH, N, plotPath, leftAAA);
+        rightAAA = RobotMotion('r', rightQQ, rightDH, N, plotPath, rightAAA);
 
         % Animate
         for n=1:size(leftAAA,4)
@@ -149,7 +152,7 @@ function TP2Animation(plotPath, iterations)
             leftGripper = leftGripper.update(T);
         
             if n <= 50
-                leftBlock = leftBlock.update(trans(-DTF-LTF+WBL+n/50*(LTF-2*WBL), -STF/2-WTS/2, HTB));
+                leftBlock = leftBlock.update(trans(lb_pos(1)+n/50*(LTF-LBL), lb_pos(2), lb_pos(3))*rotz(lb_pos(4)));
             end
         
             if and(n>100, n<=300)
@@ -173,7 +176,7 @@ function TP2Animation(plotPath, iterations)
             rightGripper = rightGripper.update(T);
         
             if n <= 50
-                rightBlock = rightBlock.update(trans(-DTF-LTF+WBL+n/50*(LTF-2*WBL), STF/2+WTS/2, HTA));
+                rightBlock = rightBlock.update(trans(rb_pos(1)+n/50*(LTF-LBL), rb_pos(2), rb_pos(3))*rotz(rb_pos(4)));
             end
         
             if and(n>100, n<=300)

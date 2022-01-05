@@ -1,10 +1,14 @@
-function [AAA, QQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, DH, QQ, AAA, dr, msg, plotPath)
+function [AAA, QQ] = JacobianMotion(arm, H, LX, LA, LB, LC, LD, N, DH, QQ, AAA, dr, msg, plotPath)
     dr = dr/N;
     Q=QQ(:,end);
     QQ=QQ(:,end);
 
     for n=1:N-1
-        Ji=jacobianLInv(Q,H,LX,LA,LB,LC,LD);
+        if arm == 'l'
+            Ji=jacobianLInv(Q,H,LX,LA,LB,LC,LD);
+        else
+            Ji=jacobianRInv(Q,H,LX,LA,LB,LC,LD);
+        end
     
         if isnan(Ji)
             error(msg)
@@ -18,6 +22,6 @@ function [AAA, QQ] = JacobianMotionL(H, LX, LA, LB, LC, LD, N, DH, QQ, AAA, dr, 
     MDH=GenerateMultiDH(DH, QQ, zeros(height(DH), 1));
     newAAA = zeros(4,4,height(DH),size(AAA,4)+50);
     newAAA(:,:,:,1:end-50) = AAA;
-    newAAA(:,:,:,end-49:end) = CalculateRobotMotion(MDH, plotPath);
+    newAAA(:,:,:,end-49:end) = CalculateRobotMotion(arm,MDH, plotPath);
     AAA = newAAA;
 end
