@@ -1,4 +1,4 @@
-function AAA = RobotMotion(arm, QQ, DH, NN, plotPath, AAA)
+function AAA = InverseMotion(arm, QQ, DH, NN, plotPath, AAA)
     jTypes = zeros(height(DH), 1);
     
     Qi=QQ(:, 1);

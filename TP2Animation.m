@@ -1,4 +1,5 @@
 function TP2Animation(plotPath, iterations)
+    pause(1);
     if nargin==0
         plotPath=1;
     end
@@ -90,8 +91,8 @@ function TP2Animation(plotPath, iterations)
             error("Right block pickup position outside working space")
         end
         
-        leftAAA = RobotMotion('l', leftQQ, leftDH, N, plotPath);
-        rightAAA = RobotMotion('r', rightQQ, rightDH, N, plotPath);
+        leftAAA = InverseMotion('l', leftQQ, leftDH, N, plotPath);
+        rightAAA = InverseMotion('r', rightQQ, rightDH, N, plotPath);
         
         % go down 50 units
         [leftAAA, leftQQ] = JacobianMotion('l', H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;0;-50;0;0;0], "Left block position outside working space", plotPath);
@@ -105,8 +106,8 @@ function TP2Animation(plotPath, iterations)
             error("Block joining position outside working space")
         end
         
-        leftAAA = RobotMotion('l', leftQQ, leftDH, N, plotPath, leftAAA);
-        rightAAA = RobotMotion('r', rightQQ, rightDH, N, plotPath, rightAAA);
+        leftAAA = InverseMotion('l', leftQQ, leftDH, N, plotPath, leftAAA);
+        rightAAA = InverseMotion('r', rightQQ, rightDH, N, plotPath, rightAAA);
         
         % 50 units movement to join
         [leftAAA, leftQQ] = JacobianMotion('l', H, LX, LA, LB, LC, LD, N, leftDH, leftQQ, leftAAA, [0;50;0;0;0;0], "Join blocks position outside working space", plotPath);
@@ -118,8 +119,8 @@ function TP2Animation(plotPath, iterations)
         rightQQ=[rightQQ(:,end) rightQQ(:,end)];
         rightQQ(1,:) = [0 pi];
         
-        leftAAA = RobotMotion('l', leftQQ, leftDH, N, plotPath, leftAAA);
-        rightAAA = RobotMotion('r', rightQQ, rightDH, N, plotPath, rightAAA);
+        leftAAA = InverseMotion('l', leftQQ, leftDH, N, plotPath, leftAAA);
+        rightAAA = InverseMotion('r', rightQQ, rightDH, N, plotPath, rightAAA);
         
         % put down blocks
         dr = [WBL;0;HTC+HBL-H+LD;0;0;0];
@@ -134,8 +135,8 @@ function TP2Animation(plotPath, iterations)
         leftQQ=[leftQQ(:,end) invkinL(-DTF-WBL/2, -STF/2-WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
         rightQQ=[rightQQ(:,end) invkinR(-DTF-WBL/2, STF/2+WTS/2, H-LD, H, LX, LA,LB,LC,LD)];
         
-        leftAAA = RobotMotion('l', leftQQ, leftDH, N, plotPath, leftAAA);
-        rightAAA = RobotMotion('r', rightQQ, rightDH, N, plotPath, rightAAA);
+        leftAAA = InverseMotion('l', leftQQ, leftDH, N, plotPath, leftAAA);
+        rightAAA = InverseMotion('r', rightQQ, rightDH, N, plotPath, rightAAA);
 
         % Animate
         for n=1:size(leftAAA,4)

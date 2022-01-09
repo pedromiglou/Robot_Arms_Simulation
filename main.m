@@ -1,8 +1,8 @@
 addpath ./Robot_Arms_Simulation/
 
-close; clear;
+clear; clf;
 
-plotPath=1;
+plotPath=0;
 iterations=2;
 
 TP2Animation(plotPath, iterations);
